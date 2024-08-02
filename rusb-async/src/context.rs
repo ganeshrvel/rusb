@@ -59,6 +59,15 @@ impl Context {
             _thread: Arc::new(thread),
         })
     }
+
+    pub fn from_context(ctx: &mut rusb::Context) -> Result<Self, Error> {
+        let thread = EventThread::new(ctx);
+
+        Ok(Self {
+            inner,
+            _thread: Arc::new(thread),
+        })
+    }
 }
 
 impl UsbContext for Context {
