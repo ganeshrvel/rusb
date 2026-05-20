@@ -220,7 +220,9 @@ fn main() {
 
     // When vendored feature is enabled, skip pkg_config entirely and always
     // compile libusb from source to ensure portability and avoid system library conflicts.
-    if cfg!(feature = "vendored") {
+    // cfg!(feature) handles compile-time checks; CARGO_FEATURE_VENDORED handles
+    // runtime environments like Cargokit where cfg! may not propagate correctly.
+    if cfg!(feature = "vendored") || std::env::var("CARGO_FEATURE_VENDORED").is_ok() {
         make_source();
         return;
     }
