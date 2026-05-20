@@ -238,6 +238,7 @@ fn make_source() {
 // }
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=LIBUSB_STATIC");
     let is_freebsd = std::env::var("CARGO_CFG_TARGET_OS") == Ok("freebsd".into());
 
