@@ -218,7 +218,15 @@ fn main() {
 
     let is_freebsd = std::env::var("CARGO_CFG_TARGET_OS") == Ok("freebsd".into());
 
-    if (!is_freebsd && cfg!(feature = "vendored")) || !find_libusb_pkg(statik) {
+    // When vendored feature is enabled, skip pkg_config entirely and always
+    // compile libusb from source to ensure portability and avoid system library conflicts.
+    #[cfg(feature = "vendored")]
+    {
+        make_source();
+        return;
+    }
+
+    if !is_freebsd && !find_libusb_pkg(statik) {
         make_source();
     }
 }
