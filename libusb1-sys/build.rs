@@ -201,58 +201,24 @@ fn make_source() {
     println!("cargo:version_number={}", VERSION);
 }
 
-// The block below is retained as a reference for the original pkg_config-based
-// discovery path. It is not called because pkg_config was silently resolving to
-// the Homebrew-installed system libusb in Cargokit's build environment, bypassing
-// the vendored C compilation entirely. Always calling make_source() above ensures
-// the vendored build is used unconditionally on all non-FreeBSD targets.
-// fn main() {
-//     println!("cargo:rerun-if-env-changed=LIBUSB_STATIC");
-//     let statik = {
-//         if cfg!(target_os = "macos") {
-//             match std::env::var("LIBUSB_STATIC").unwrap_or_default().as_ref() {
-//                 "" | "0" => false,
-//                 _ => true,
-//             }
-//         } else {
-//             std::env::var("CARGO_CFG_TARGET_FEATURE")
-//                 .map(|s| s.contains("crt-static"))
-//                 .unwrap_or_default()
-//         }
-//     };
-//
-//     let is_freebsd = std::env::var("CARGO_CFG_TARGET_OS") == Ok("freebsd".into());
-//
-//     // When vendored feature is enabled, skip pkg_config entirely and always
-//     // compile libusb from source to ensure portability and avoid system library conflicts.
-//     // cfg!(feature) handles compile-time checks; CARGO_FEATURE_VENDORED handles
-//     // runtime environments like Cargokit where cfg! may not propagate correctly.
-//     if cfg!(feature = "vendored") || std::env::var("CARGO_FEATURE_VENDORED").is_ok() {
-//         make_source();
-//         return;
-//     }
-//
-//     if !is_freebsd && !find_libusb_pkg(statik) {
-//         make_source();
-//     }
-// }
-
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=LIBUSB_STATIC");
+    let statik = {
+        if cfg!(target_os = "macos") {
+            match std::env::var("LIBUSB_STATIC").unwrap_or_default().as_ref() {
+                "" | "0" => false,
+                _ => true,
+            }
+        } else {
+            std::env::var("CARGO_CFG_TARGET_FEATURE")
+                .map(|s| s.contains("crt-static"))
+                .unwrap_or_default()
+        }
+    };
+
     let is_freebsd = std::env::var("CARGO_CFG_TARGET_OS") == Ok("freebsd".into());
 
-    if is_freebsd {
-        let statik = std::env::var("CARGO_CFG_TARGET_FEATURE")
-            .map(|s| s.contains("crt-static"))
-            .unwrap_or_default();
-
-        if !find_libusb_pkg(statik) {
-            make_source();
-        }
-
-        return;
+    if (!is_freebsd && cfg!(feature = "vendored")) || !find_libusb_pkg(statik) {
+        make_source();
     }
-
-    make_source();
 }
