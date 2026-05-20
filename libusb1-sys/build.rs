@@ -220,8 +220,7 @@ fn main() {
 
     // When vendored feature is enabled, skip pkg_config entirely and always
     // compile libusb from source to ensure portability and avoid system library conflicts.
-    #[cfg(feature = "vendored")]
-    {
+    if cfg!(feature = "vendored") {
         make_source();
         return;
     }
