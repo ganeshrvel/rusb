@@ -34,6 +34,7 @@ build = "build.rs"
 travis-ci = { repository = "a1ien/libusb1-sys" }
 
 [features]
+default = ["vendored"]
 vendored = []
 
 [dependencies]
